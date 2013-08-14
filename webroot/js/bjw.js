@@ -49,7 +49,7 @@ Bjw.prototype.generateNewField = function(tryCount) {
 		stepCount++;
 		gemList = [];
 		for ( i = 0; i < l; i++) {
-			gemList.push(this.getRandomNewGem());
+			gemList.push(this.getNewRandomGem());
 		}
 	} while (this.getWinCombinations(gemList, true).length > 0 || !this.isThereAnyMove(gemList));
 	console.log("generated new gem list in steps: " + stepCount);
@@ -60,7 +60,7 @@ Bjw.prototype.generateNewField = function(tryCount) {
  * Generate new Gem object with random type from this.gemTypes
  * @return {Gem}
  */
-Bjw.prototype.getRandomNewGem = function() {
+Bjw.prototype.getNewRandomGem = function() {
 	return {
 		type : this.gemTypes[~~(this.gemTypes.length * Math.random())]
 	};
@@ -198,8 +198,9 @@ Bjw.prototype.positionToIndex = function(col, row) {
  * @param {int} [toPos]
  * @return {action:remove/move/add, gems[{c,r}]}
  */
-Bjw.prototype.getGemSwapingActions = function(gemList, from, to) {
-	var gems = gemList.slice(), actions = [], winCombinations = [];
+Bjw.prototype.getGemSwapingActions = function(gemList, from, to, gemGenerator) {
+	var gems = gemList.slice(), actions = [], winCombinations = [], l = gems.length;
+	gemGenerator = gemGenerator || this.getNewRandomGem();
 
 	this.swapGems(gems, from, to);
 
@@ -209,7 +210,13 @@ Bjw.prototype.getGemSwapingActions = function(gemList, from, to) {
 			action : 'remove',
 			gems : winCombinations
 		});
+		for (var wi = 0; wi < winCombinations.length; wi++) {
+			
+		}
 	} while (winCombinations.length);
+
+	actions.gems = gems;
+	return actions;
 
 	// check horizontal combinations
 	for ( i = 0; i < l; i++) {

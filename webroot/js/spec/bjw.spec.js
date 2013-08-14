@@ -202,41 +202,9 @@ describe("bjw creation", function() {
 });
 
 
-xdescribe("bjw gameplay", function() {
+describe("bjw gameplay (getGemSwapingActions)", function() {
 
-        var bjw, gemList, actions;
-
-        bjw = new Bjw(3, 3, [0, 1, 3]);
-        gemList = [
-        g1, g1, g,
-        g, g2, g,
-        g, g1, g1];
-        actions = bjw.getGemSwapingActions(gemList, 0, 3);
-        expect(JSON.stringify(actions)).toBe(JSON.stringify([]));
-        
-        bjw = new Bjw(3, 3, [0, 1, 3]);
-        gemList = [
-        g1, g1, g,
-        g, g2, g1,
-        g, g1, g1];
-        actions = bjw.getGemSwapingActions(gemList, 1, 2);
-        expect(JSON.stringify(actions[0])).toBe(JSON.stringify({action:'remove', gems:[0, 1, 2]}));
-        expect(actions[1].action).toBe('add');
-        expect(actions[1].gems.length).toBe(3);
-        
-        bjw = new Bjw(3, 3, [0, 1, 3]);
-        gemList = [
-        g1, g1, g,
-        g, g2, g1,
-        g, g1, g1];
-        actions = bjw.getGemSwapingActions(gemList, 1, 2);
-        expect(JSON.stringify(actions[0])).toBe(JSON.stringify({action:'remove', gems:[2, 5, 8]}));
-        expect(actions[1].action).toBe('add');
-        expect(actions[1].gems.length).toBe(3);
-        
-        
-        
-    /*
+   /*
     select first gem
     select second gem
     if is not neighbor
@@ -254,15 +222,81 @@ xdescribe("bjw gameplay", function() {
             fill the empty cells (animation)
             after animation unlock gui
     */
+   
+    var bjw, gemList, actions;
 
+	it("should return [] if no actions", function() {
+	    bjw = new Bjw(3, 3, [0, 1, 3]);
+        gemList = [
+        g1, g1, g,
+        g, g2, g,
+        g, g1, g1];
+        actions = bjw.getGemSwapingActions(gemList, 0, 3);
+        delete actions.gems;
+        expect(JSON.stringify(actions)).toBe(JSON.stringify([]));
+     });
+        
+	it("should remove and add gems", function() {
+        bjw = new Bjw(3, 3, [0, 1, 3]);
+        gemList = [
+        g1, g1, g,
+        g, g2, g1,
+        g, g1, g1];
+        actions = bjw.getGemSwapingActions(gemList, 2, 5);
+        delete actions.gems;
+        expect(JSON.stringify(actions[0])).toBe(JSON.stringify({action:'remove', gems:[0, 1, 2]}));
+        expect(actions[1].action).toBe('add');
+        expect(actions[1].gems.length).toBe(3);
+        expect(bjw.getWinCombinations(gemList).length).toBe(0);
 
+        bjw = new Bjw(3, 3, [0, 1, 3]);
+        gemList = [
+        g1, g1, g,
+        g1, g2, g1,
+        g, g1, g1];
+        actions = bjw.getGemSwapingActions(gemList, 1, 2, (function(){
+        	var gemTypes = [0, 0, 0, 0, 2, 0];
+        	var index = 0;
+        	return function() {
+        		return {type: gemTypes[index]};
+        	}
+        })());
+        delete actions.gems;
+        expect(JSON.stringify(actions[0])).toBe(JSON.stringify({action:'remove', gems:[2, 5, 8]}));
+        expect(JSON.stringify(actions[1])).toBe(JSON.stringify({action:'add', gems:[0, 0, 0], indexes:[2, 5, 8]}));
+        expect(JSON.stringify(actions[2])).toBe(JSON.stringify({action:'remove', gems:[2, 5, 8]}));
+        expect(JSON.stringify(actions[3])).toBe(JSON.stringify({action:'add', gems:[0, 2, 0], indexes:[2, 5, 8]}));
+        expect(JSON.stringify(actions[4])).toBe(JSON.stringify({action:'remove', gems:[3, 4, 5]}));
+        expect(actions[5].action).toBe('add');
+        expect(actions[5].gems.length).toBe(3);
+        expect(bjw.getWinCombinations(gemList).length).toBe(0);
+     });
+        
+	it("should drop gems from above (to empty gaps)", function() {
+        bjw = new Bjw(3, 3, [0, 1, 3]);
+        gemList = [
+        g1, g1, g,
+        g1, g2, g1,
+        g, g1, g1];
+        actions = bjw.getGemSwapingActions(gemList, 3, 6, (function(){
+        	var gemTypes = [2, 1, 0, 0, 2, 0];
+        	var index = 0;
+        	return function() {
+        		return {type: gemTypes[index]};
+        	}
+        })());
+        var resultGems = actions.gems;
+        delete actions.gems;
+        expect(JSON.stringify(actions[0])).toBe(JSON.stringify({action:'remove', gems:[6, 7, 8]}));
+        expect(JSON.stringify(actions[1])).toBe(JSON.stringify({action:'move', from:[0, 1, 2, 3, 4, 5], to:[3, 4, 5, 6, 7, 8]}));
+        expect(JSON.stringify(actions[2])).toBe(JSON.stringify({action:'add', gems:[2, 1, 0], indexes:[0, 1, 2]}));
+		expect(actions.length).toBe(3);
+		
+        expect(JSON.stringify(resultGems)).toBe(JSON.stringify([g2, g1, g,   g1, g1, g,   g, g2, g1]));
 
-    it("should process gems removing", function() {
-        // remove gems
-        // return old and new positions for moving games
-        // suggest new gems in new gaps
-    });
-
+        expect(bjw.getWinCombinations(gemList).length).toBe(0);
+     });
+        
 });
 
 describe("bjw traslation utils", function() {
